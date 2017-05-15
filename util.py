@@ -1,8 +1,26 @@
+"""
+    This file is based on DeepConvSep.
+
+    Copyright (c) 2014-2017 Marius Miron  <miron.marius at gmail.com>
+
+    DeepConvSep is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    DeepConvSep is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with DeepConvSep.  If not, see <http://www.gnu.org/licenses/>.
+ """
+ 
 import numpy as np
 import scipy
 from scipy import io
-import os
-import sys
+import os,sys,re
 
 def infoAudioScipy(filein):
     sampleRate, audioObj = scipy.io.wavfile.read(filein)  
@@ -24,35 +42,33 @@ def writeAudioScipy(fileout,audio_out,sampleRate,bitrate="int16"):
     maxn = np.iinfo(bitrate).max  
     scipy.io.wavfile.write(filename=fileout, rate=sampleRate, data=(audio_out*maxn).astype(bitrate))
 
-def saveTensor(self, t, name=''):
+def saveTensor(t, out_path, suffix=''):
     """
     Saves a numpy array as a binary file
     """
-    t.tofile(self.out_path.replace('.data',name+'.data'))
+    assert os.path.isdir(os.path.dirname(out_path)), "path to save tensor does not exist"
+    t.tofile(out_path.replace('.data',suffix+'.data'))
     #save shapes
-    self.shape = t.shape
-    self.save_shape(self.out_path.replace('.data',name+'.shape'),t.shape)
+    save_shape(out_path.replace('.data',suffix+'.shape'),t.shape)
 
-def loadTensor(self, name=''):
+def loadTensor(out_path,suffix=''):
     """
     Loads a binary .data file
     """
-    f_in = np.fromfile(self.out_path.replace('.data',name+'.data'))
-    shape = self.get_shape(self.out_path.replace('.data',name+'.shape'))
-    if self.shape == shape:
-        f_in = f_in.reshape(shape)    
-        return f_in
-    else:
-        print 'Shape of loaded array does not match with the original shape of the transform'
-
-def save_shape(self,shape_file,shape):
+    assert os.path.isdir(os.path.dirname(out_path)), "path to load tensor does not exist"
+    f_in = np.fromfile(out_path.replace('.data',suffix+'.data'))
+    shape = get_shape(out_path.replace('.data',suffix+'.shape'))
+    f_in = f_in.reshape(shape)    
+    return f_in
+    
+def save_shape(shape_file,shape):
     """
     Saves the shape of a numpy array
     """
     with open(shape_file, 'w') as fout:
         fout.write(u'#'+'\t'.join(str(e) for e in shape)+'\n')
 
-def get_shape(self,shape_file):
+def get_shape(shape_file):
     """
     Reads a .shape file
     """

@@ -1,5 +1,25 @@
+"""
+    This file is based on DeepConvSep and librosa
+
+    Copyright (c) 2014-2017 Marius Miron  <miron.marius at gmail.com>
+
+    DeepConvSep is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    DeepConvSep is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with DeepConvSep.  If not, see <http://www.gnu.org/licenses/>.
+ """
 import scipy
 import numpy as np
+import os
+import util
 
 class Transforms(object):
     """
@@ -17,7 +37,7 @@ class Transforms(object):
         The window function for the analysis
     
     """
-    def __init__(self, ttype='fft', bins=48, frameSize=1024, hopSize=256, tffmin=25, tffmax=18000, iscale = 'lin', sampleRate=44100, window=np.hanning):
+    def __init__(self, ttype='fft', bins=48, frameSize=1024, hopSize=256, tffmin=0, tffmax=22050, iscale = 'lin', sampleRate=44100, window=np.hanning):
         self.bins = bins
         self.frameSize = frameSize
         self.hopSize = hopSize
@@ -29,7 +49,7 @@ class Transforms(object):
         self.window = window(self.frameSize)
         self.suffix = "" #for backwards compatibility
 
-    def compute_transform(self, audio, out_path=None, save=True,suffix=""):
+    def compute_transform(self, audio, out_path=None, save=True,suffix="",sampleRate=None):
         """
         Compute the features for an audio signal.
             The audio signal \"audio\" is a numpy array with the shape (t,i) - t is time and i is the id of signal
@@ -50,12 +70,17 @@ class Transforms(object):
             The features computed for each of the signals in the audio array, e.g. magnitude spectrograms
         """
         self.out_path = out_path
+        assert os.path.isdir(os.path.dirname(self.out_path)), "path to save tensor does not exist"
+
+        if sampleRate is not None:
+            self.sampleRate = sampleRate
+            #self.fmax=float(self.sampleRate)/2
 
         #compute features 
         mag=self.compute_file(audio, sampleRate=self.sampleRate)
             
         if save and self.out_path is not None:
-            util.saveTensor(mags,suffix)
+            util.saveTensor(mag,self.out_path,suffix)
             mag = None
         else:
             return mag
@@ -138,9 +163,9 @@ class transformMEL(Transforms):
         X = None
 
         #compute the mel filters using librosa
-        mel_basis = mel(self.sampleRate, mag.shape[-1], n_mels=self.bins, fmin=self.fmin, fmax=self.fmax, htk=False,norm=1)
+        mel_basis = mel(self.sampleRate, n_fft = float(self.frameSize), n_mels=self.bins, fmin=self.fmin, fmax=self.fmax, htk=False,norm=1)
         
-        return np.dot(mel_basis, mag)
+        return np.dot(mel_basis, mag.T).T
 
 
 def sinebell(lengthWindow):
