@@ -9,5 +9,7 @@ In the second part of the workshop we introduce the data pre-processing steps (J
 
 # Dependencies 
 python 2.7
+
 jupyter
-numpy, scipy, sklearn, keras, tensorflow
+
+numpy, scipy, sklearn, pandas, matplotlib, keras, tensorflow
