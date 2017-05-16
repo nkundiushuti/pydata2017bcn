@@ -1,0 +1,7 @@
+python>=2.7
+jupyter
+numpy
+scipy
+sklearn
+keras
+tensorflow
