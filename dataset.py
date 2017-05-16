@@ -20,6 +20,8 @@ import numpy as np
 import scipy
 import os,sys
 import util
+import sklearn
+from sklearn.model_selection import train_test_split
 
 class MyDataset(object):
     """
@@ -39,7 +41,8 @@ class MyDataset(object):
     floatX: dtype
         Type of the arrays for the output
     """
-    def __init__(self, feature_dir=None, batch_size=32, time_context=100, overlap=25, suffix_in='_mel_',suffix_out='_label_',floatX=np.float32):
+    def __init__(self, feature_dir=None, batch_size=32, time_context=100, overlap=25, 
+        suffix_in='_mel_', suffix_out='_label_', floatX=np.float32, train_percent=1.):
     
         self.batch_size = batch_size
         self.floatX = floatX
@@ -51,6 +54,8 @@ class MyDataset(object):
             self.overlap = int(0.5 * self.time_context)
         else:
             self.overlap = overlap
+
+        self.train_percent = np.maximum(0.1,np.minimum(1.,train_percent))
 
         if feature_dir is not None:
             self.initDir(feature_dir)
@@ -91,7 +96,7 @@ class MyDataset(object):
         self.batch_size=np.minimum(self.batch_size,self.total_points)
         #how many batches can we fit in the dataset 
         self.iteration_size=int(np.floor(self.total_points/ self.batch_size))
-        self.iteration_step = 0
+        self.iteration_step = -1
 
         #feature size (last dimension of the output)
         self.feature_size = self.getFeatureSize(infile=os.path.join(self.feature_dir,self.file_list[0]))
@@ -105,17 +110,22 @@ class MyDataset(object):
             self.fetchFile(id) 
         self.shuffleBatches()
 
+        if self.train_percent<1.:       
+            self.features_valid, self.features, self.labels_valid, self.labels= train_test_split(self.features, self.labels, test_size=self.train_percent, random_state=42)
+            self.total_points = len(self.features)
+            self.iteration_size = int(np.floor(self.total_points/ self.batch_size))
+
+
     def shuffleBatches(self):
         idxrand = np.random.permutation(self.total_points)
         self.features=self.features[idxrand]
-        self.labels=self.features[idxrand]
+        self.labels=self.labels[idxrand]
 
 
     def fetchFile(self,id):
         #load the data files
         spec = util.loadTensor(out_path=os.path.join(self.feature_dir,self.file_list[id]))
         lab = util.loadTensor(out_path=os.path.join(self.feature_dir,self.file_list[id].replace(self.suffix_in,self.suffix_out)))
-        
         #we need to put the features in the self.features array starting at this index
         idx_start = self.total_noinstances[id]
         #and we stop at this index in self.feature
@@ -131,8 +141,25 @@ class MyDataset(object):
         self.labels[idx_start:idx_end] = lab[0]
         spec = None
         lab = None
+ 
+
+    def getData(self):
+        assert self.total_points>0, "no data points in dataset"
+        if self.train_percent<1.:
+            return self.features,self.labels, self.features_valid, self.labels_valid 
+        else:
+            return self.features,self.labels, self.features,self.labels
+
+    def getValidation(self):
+        assert self.train_percent<1., "no validation examples. decrease train_percent"
+        return self.features_valid, self.labels_valid 
 
     def iterate(self):
+        self.iteration_step += 1
+        if self.iteration_step==self.iteration_size:
+            self.iteration_step = 0
+            self.shuffleBatches()
+
         return self.features[self.iteration_step*self.batch_size:(self.iteration_step+1)*self.batch_size,np.newaxis],self.labels[self.iteration_step*self.batch_size:(self.iteration_step+1)*self.batch_size]
 
     def __len__(self):
