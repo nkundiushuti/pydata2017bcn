@@ -67,7 +67,7 @@ class MyDataset(object):
         """
         shape = util.get_shape(os.path.join(infile.replace('.data','.shape')))
         length_file = shape[0]
-        return np.maximum(1,int(np.floor(length_file/float(time_context-overlap))))
+        return np.maximum(1,int(np.floor((length_file + (np.floor(float(length_file)/self.time_context) * self.overlap))  / self.time_context)))
 
 
     def getFeatureSize(self,infile):
@@ -130,7 +130,7 @@ class MyDataset(object):
         idx_start = self.total_noinstances[id]
         #and we stop at this index in self.feature
         idx_end = self.total_noinstances[id+1]
-        
+  
         #copy each block of size (time_contex,feature_size) in the self.features
         idx=0 #starting index of each block
         start = 0 #starting point for each block in frames
