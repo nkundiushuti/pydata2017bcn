@@ -36,12 +36,12 @@ class MyDataset(object):
     time_context : int, optional
         The time context modeled by the network. 
         The data files are split into segments of this size
-    overlap : int, optional
-        The number of overlapping frames between adjacent segments
+    step : int, optional
+        The number of stepping frames between adjacent segments
     floatX: dtype
         Type of the arrays for the output
     """
-    def __init__(self, feature_dir=None, batch_size=32, time_context=100, overlap=25, 
+    def __init__(self, feature_dir=None, batch_size=32, time_context=100, step=25, 
         suffix_in='_mel_', suffix_out='_label_', floatX=np.float32, train_percent=1.):
     
         self.batch_size = batch_size
@@ -50,10 +50,10 @@ class MyDataset(object):
         self.suffix_out = suffix_out
         
         self.time_context = int(time_context)
-        if overlap > self.time_context:
-            self.overlap = int(0.5 * self.time_context)
+        if step > self.time_context:
+            self.step = int(0.5 * self.time_context)
         else:
-            self.overlap = overlap
+            self.step = step
 
         self.train_percent = np.maximum(0.1,np.minimum(1.,train_percent))
 
@@ -61,13 +61,13 @@ class MyDataset(object):
             self.initDir(feature_dir)
 
 
-    def getNumInstances(self,infile,time_context=100,overlap=25):
+    def getNumInstances(self,infile,time_context=100,step=25):
         """
         For a single .data file computes the number of examples of size \"time_context\" that can be created
         """
         shape = util.get_shape(os.path.join(infile.replace('.data','.shape')))
         length_file = float(shape[0])
-        return np.maximum(1,int(np.ceil((length_file-time_context)/ self.overlap)))
+        return np.maximum(1,int(np.ceil((length_file-time_context)/ self.step)))
 
 
     def getFeatureSize(self,infile):
@@ -88,8 +88,8 @@ class MyDataset(object):
         self.feature_dir = feature_dir
 
         #how many training examples we create for every file?
-        #noinstances = self.getNumInstances(os.path.join(self.feature_dir,self.file_list[0]),time_context=self.time_context,overlap=self.overlap)
-        self.total_noinstances = np.cumsum(np.array([0]+[self.getNumInstances(os.path.join(self.feature_dir,infile),time_context=self.time_context,overlap=self.overlap) 
+        #noinstances = self.getNumInstances(os.path.join(self.feature_dir,self.file_list[0]),time_context=self.time_context,step=self.step)
+        self.total_noinstances = np.cumsum(np.array([0]+[self.getNumInstances(os.path.join(self.feature_dir,infile),time_context=self.time_context,step=self.step) 
             for infile in self.file_list], dtype=int))
         self.total_points = self.total_noinstances[-1]
         #reduce the batch size if we have less points
@@ -136,7 +136,7 @@ class MyDataset(object):
         start = 0 #starting point for each block in frames
         while idx<(idx_end-idx_start):
             self.features[idx_start+idx] = spec[start:start+self.time_context]
-            start = start + self.overlap 
+            start = start + self.step 
             idx = idx + 1
         self.labels[idx_start:idx_end] = lab[0]
         spec = None
