@@ -3,5 +3,6 @@ jupyter
 numpy
 scipy
 sklearn
+matplotlib
 git+https://github.com/fchollet/keras.git
-tensorflow
+tensorflow>=1.0

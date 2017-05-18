@@ -12,4 +12,4 @@ python 2.7
 
 jupyter
 
-numpy, scipy, sklearn, pandas, matplotlib, keras, tensorflow
+numpy, scipy, sklearn, pandas, matplotlib, keras>=2.0.4, tensorflow>=1.0
