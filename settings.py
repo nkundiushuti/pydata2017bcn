@@ -15,8 +15,4 @@ N_MEL_BANDS = 96
 SEGMENT_DUR = 128
 
 
-IRMAS_TRAIN_FEATURE_BASEPATH = '/home/olga/IRMAS/IRMAS-TrainingData-Features/singlelayer'
-IRMAS_TEST_FEATURE_BASEPATH = '/home/olga/IRMAS/IRMAS-TestingData-Features/singlelayer'
-IRMAS_TRAINING_META_PATH = './IRMAS-Sample/irmas_train_meta.csv'
-IRMAS_TESTING_META_PATH = './IRMAS-Sample/irmas_test_meta.csv'
 MODEL_WEIGHT_BASEPATH = './weights/'
