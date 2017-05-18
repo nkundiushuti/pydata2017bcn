@@ -66,8 +66,8 @@ class MyDataset(object):
         For a single .data file computes the number of examples of size \"time_context\" that can be created
         """
         shape = util.get_shape(os.path.join(infile.replace('.data','.shape')))
-        length_file = shape[0]
-        return np.maximum(1,int(np.floor((length_file + (np.floor(float(length_file)/self.time_context) * self.overlap))  / self.time_context)))
+        length_file = float(shape[0])
+        return np.maximum(1,int(np.ceil((length_file-time_context)/ self.overlap)))
 
 
     def getFeatureSize(self,infile):
@@ -136,7 +136,7 @@ class MyDataset(object):
         start = 0 #starting point for each block in frames
         while idx<(idx_end-idx_start):
             self.features[idx_start+idx] = spec[start:start+self.time_context]
-            start = start - self.overlap + self.time_context 
+            start = start + self.overlap 
             idx = idx + 1
         self.labels[idx_start:idx_end] = lab[0]
         spec = None
