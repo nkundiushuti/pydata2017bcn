@@ -7,6 +7,8 @@ In the first part, we introduce key concepts in deep learning.
 
 In the second part of the workshop we introduce the data pre-processing steps (Jupyter notebook 'DataPreprocessing.ipynb') including audio file reading, feature computation and batch generation.
 
+In the third part of the workshop we introduce the TensorBoard visualisation via Keras Callbacks (Jupyter notebook 'TensorBoardDemo.ipynb') including weights, gradients and graphs visualisation, embeddings and hidden outputs computation and visualisation.
+
 # Dependencies 
 python 2.7
 
