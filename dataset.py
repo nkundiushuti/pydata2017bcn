@@ -163,8 +163,9 @@ class MyDataset(object):
         categorical = np.zeros((self.batch_size, int(self.labels.max()+1)))
         y = np.array(y, dtype='int').ravel()
         categorical[np.arange(self.batch_size), y] = 1
-
-        return self.features[self.iteration_step*self.batch_size:(self.iteration_step+1)*self.batch_size,np.newaxis],categorical
+        features = self.features[self.iteration_step*self.batch_size:(self.iteration_step+1)*self.batch_size,np.newaxis]
+        features = np.swapaxes(features, 1, 3)
+        return (features, categorical)
 
     def __len__(self):
         return self.iteration_size
