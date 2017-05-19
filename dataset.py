@@ -159,8 +159,13 @@ class MyDataset(object):
         if self.iteration_step==self.iteration_size:
             self.iteration_step = 0
             self.shuffleBatches()
+            y = self.labels[self.iteration_step*self.batch_size:(self.iteration_step+1)*self.batch_size]
+            categorical = np.zeros(self.batch_size, self.labels.max()+1)
+            y = np.array(y, dtype='int').ravel()
+            categorical[np.arange(self.batch_size), y] = 1
 
-        return self.features[self.iteration_step*self.batch_size:(self.iteration_step+1)*self.batch_size,np.newaxis],self.labels[self.iteration_step*self.batch_size:(self.iteration_step+1)*self.batch_size]
+        return self.features[self.iteration_step*self.batch_size:(self.iteration_step+1)*self.batch_size,np.newaxis],\
+               categorical
 
     def __len__(self):
         return self.iteration_size
